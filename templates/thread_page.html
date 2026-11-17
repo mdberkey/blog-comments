@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>comments · {{ page }}</title>
+  <link rel="stylesheet" href="{{ site_css_url }}">
+  <link rel="stylesheet" href="/static/comments.css">
+  <link rel="canonical" href="{{ canonical_url }}">
+</head>
+<body class="comments-page">
+  <main class="comments-main">
+    <nav class="comments-nav"><a href="{{ post_url }}">← back to the post</a></nav>
+    <header class="comments-header">
+      <h1 class="comments-title">comments</h1>
+      <p class="comments-subject">{{ page }}</p>
+    </header>
+    {{ comments_html }}
+  </main>
+</body>
+</html>

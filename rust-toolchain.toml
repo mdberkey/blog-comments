@@ -1,0 +1,6 @@
+[toolchain]
+# Match the Rust version used by the Dockerfile. `stable` is deliberate: the
+# image pins the exact release, while local builds follow the current stable.
+channel = "stable"
+components = ["clippy", "rustfmt"]
+profile = "minimal"

@@ -1,0 +1,165 @@
+:root {
+  color-scheme: light dark;
+  --admin-bg: #f7f5f2;
+  --admin-fg: #1f1e1c;
+  --admin-muted: #6c6a66;
+  --admin-line: #ddd8d1;
+  --admin-card: #ffffff;
+  --admin-accent: #8a4b2a;
+  --admin-danger: #a11b1b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --admin-bg: #141311;
+    --admin-fg: #e9e6e1;
+    --admin-muted: #a09c95;
+    --admin-line: #35322e;
+    --admin-card: #1c1a17;
+    --admin-accent: #d79a73;
+    --admin-danger: #f08a8a;
+  }
+}
+
+.admin-page {
+  margin: 0;
+  background: var(--admin-bg);
+  color: var(--admin-fg);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.admin-main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.admin-header {
+  border-bottom: 1px solid var(--admin-line);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.8rem;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.admin-meta {
+  margin: 0.2rem 0 0;
+  color: var(--admin-muted);
+  font-size: 0.85rem;
+}
+
+.admin-meta a {
+  color: var(--admin-accent);
+}
+
+.admin-section {
+  margin-bottom: 2.5rem;
+}
+
+.admin-section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.8rem;
+}
+
+.admin-count {
+  color: var(--admin-muted);
+  font-weight: 400;
+  font-size: 0.85em;
+}
+
+.admin-empty {
+  color: var(--admin-muted);
+  font-size: 0.9rem;
+}
+
+.admin-comment {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-line);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.admin-pending {
+  border-left: 3px solid var(--admin-accent);
+}
+
+.admin-comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.7rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+
+.admin-comment-meta span {
+  color: var(--admin-muted);
+}
+
+.admin-comment-meta a {
+  color: var(--admin-accent);
+  font-size: 0.8rem;
+}
+
+.admin-subject {
+  margin: 0.3rem 0 0;
+  color: var(--admin-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-body {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-actions form {
+  margin: 0;
+}
+
+.admin-button {
+  padding: 0.35rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--admin-line);
+  background: transparent;
+  color: var(--admin-fg);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-approve {
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+}
+
+.admin-approve:hover {
+  background: var(--admin-accent);
+  color: var(--admin-card);
+}
+
+.admin-delete {
+  border-color: var(--admin-danger);
+  color: var(--admin-danger);
+}
+
+.admin-delete:hover {
+  background: var(--admin-danger);
+  color: var(--admin-card);
+}

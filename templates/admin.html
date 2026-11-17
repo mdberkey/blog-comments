@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>comment moderation</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body class="admin-page">
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1>comment moderation</h1>
+      <p class="admin-meta">signed in as <strong>{{ admin_user }}</strong> · <a href="/admin">refresh</a></p>
+    </header>
+
+    <section class="admin-section">
+      <h2>pending <span class="admin-count">{{ pending_count }}</span></h2>
+      {% if pending_count == 0 %}
+      <p class="admin-empty">nothing is waiting for review.</p>
+      {% else %}
+      {% for c in pending %}
+      <article class="admin-comment admin-pending">
+        <div class="admin-comment-meta">
+          <strong>{{ c.author }}</strong>
+          <span>{{ c.created_human }}</span>
+          <a href="/thread?page={{ c.page|urlencode }}#c{{ c.id }}">thread</a>
+        </div>
+        <p class="admin-subject">{{ c.page }}</p>
+        <pre class="admin-body">{{ c.body }}</pre>
+        <div class="admin-actions">
+          <form method="post" action="/admin/{{ c.id }}/approve">
+            <input type="hidden" name="ts" value="{{ c.ts }}">
+            <input type="hidden" name="token" value="{{ c.approve_token }}">
+            <button type="submit" class="admin-button admin-approve">approve</button>
+          </form>
+          <form method="post" action="/admin/{{ c.id }}/delete">
+            <input type="hidden" name="ts" value="{{ c.ts }}">
+            <input type="hidden" name="token" value="{{ c.delete_token }}">
+            <button type="submit" class="admin-button admin-delete">delete</button>
+          </form>
+        </div>
+      </article>
+      {% endfor %}
+      {% endif %}
+    </section>
+
+    <section class="admin-section">
+      <h2>recent <span class="admin-count">{{ recent_count }}</span></h2>
+      {% if recent_count == 0 %}
+      <p class="admin-empty">no published comments yet.</p>
+      {% else %}
+      {% for c in recent %}
+      <article class="admin-comment">
+        <div class="admin-comment-meta">
+          <strong>{{ c.author }}</strong>
+          <span>{{ c.created_human }}</span>
+          <a href="/thread?page={{ c.page|urlencode }}#c{{ c.id }}">thread</a>
+        </div>
+        <p class="admin-subject">{{ c.page }}</p>
+        <pre class="admin-body">{{ c.body }}</pre>
+        <div class="admin-actions">
+          <form method="post" action="/admin/{{ c.id }}/delete">
+            <input type="hidden" name="ts" value="{{ c.ts }}">
+            <input type="hidden" name="token" value="{{ c.delete_token }}">
+            <button type="submit" class="admin-button admin-delete">delete</button>
+          </form>
+        </div>
+      </article>
+      {% endfor %}
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% macro comment_form(form) %}
+<form class="comment-form" method="post" action="/comment">
+  <input type="hidden" name="page" value="{{ form.page }}">
+  <input type="hidden" name="ts" value="{{ form.ts }}">
+  <input type="hidden" name="token" value="{{ form.token }}">
+  {% if form.is_reply %}
+  <input type="hidden" name="parent_id" value="{{ form.parent_id_value }}">
+  {% endif %}
+  <div class="comment-field">
+    <label for="author">name</label>
+    <input id="author" name="author" type="text" maxlength="40" required
+           autocomplete="nickname" value="{{ form.author }}">
+    {% if form.error_author.len() > 0 %}
+    <p class="comment-error" role="alert">{{ form.error_author }}</p>
+    {% endif %}
+  </div>
+  <div class="comment-field">
+    <label for="body">comment</label>
+    <textarea id="body" name="body" rows="5" maxlength="2000" required>{{ form.body }}</textarea>
+    {% if form.error_body.len() > 0 %}
+    <p class="comment-error" role="alert">{{ form.error_body }}</p>
+    {% endif %}
+  </div>
+  <div class="comments-honeypot" hidden aria-hidden="true">
+    <label for="website">website</label>
+    <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+  </div>
+  <div class="comment-form-actions">
+    {% if form.is_reply %}
+    <p class="comment-replying">replying to <strong>{{ form.reply_author }}</strong>
+      · <a href="{{ form.cancel_url }}">cancel</a></p>
+    {% endif %}
+    <button type="submit">{% if form.is_reply %}post reply{% else %}post comment{% endif %}</button>
+  </div>
+</form>
+{% endmacro %}
+<div id="comments" class="comments">
+  {% if show_heading %}
+  <h2 class="comments-heading">comments <span class="comments-count">{{ visible_count }}</span></h2>
+  {% endif %}
+  {% if !notice.is_empty() %}
+  <p class="comments-notice" role="status">{{ notice }}</p>
+  {% endif %}
+  {% if !form.error_general.is_empty() %}
+  <p class="comment-error comments-error-general" role="alert">{{ form.error_general }}</p>
+  {% endif %}
+  {% if comments.is_empty() %}
+  <p class="comments-empty">no comments yet. be the first.</p>
+  {% else %}
+  <ol class="comment-list">
+    {% for c in comments %}
+    <li id="c{{ c.id }}" class="comment depth-{{ c.depth_class }}{% if c.deleted %} comment-deleted{% endif %}">
+      <div class="comment-meta">
+        <span class="comment-author">{{ c.author }}</span>
+        <a class="comment-time" href="{{ thread_url_base }}?page={{ page|urlencode }}#c{{ c.id }}"><time datetime="{{ c.created_iso }}">{{ c.created_human }}</time></a>
+      </div>
+      {% if !c.deleted %}
+      <div class="comment-body">{{ c.body_html }}</div>
+      <div class="comment-actions">
+        <a class="comment-reply" href="{{ reply_base }}?page={{ page|urlencode }}&reply={{ c.id }}">reply</a>
+      </div>
+      {% endif %}
+      {% if c.show_form %}
+      {% call comment_form(form) %}{% endcall %}
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+  {% if !form.is_reply %}
+  {% call comment_form(form) %}{% endcall %}
+  {% endif %}
+</div>

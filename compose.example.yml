@@ -1,0 +1,24 @@
+services:
+  comments:
+    image: ghcr.io/mdberkey/blog-comments:latest
+    container_name: comments
+    restart: unless-stopped
+    # `format: raw` keeps Compose from interpolating `$` in the argon2 PHC
+    # hash, which would corrupt ADMIN_PASSWORD_HASH.
+    env_file:
+      - path: ./comments.env
+        format: raw
+    volumes:
+      - ./app_data/comments:/data
+    expose: ["8080"]
+    read_only: true
+    # The service runs as the distroless nonroot user. The bind-mounted data
+    # directory must be owned by the same uid/gid (see README).
+    user: "65532:65532"
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/blog-comments", "healthcheck"]
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
