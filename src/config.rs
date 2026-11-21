@@ -117,7 +117,9 @@ impl Config {
         let secret_key = parse_secret_key(&required_env("SECRET_KEY")?)?;
 
         let trust_proxy = parse_bool("TRUST_PROXY", optional_env("TRUST_PROXY"), true)?;
-        let moderate_links = parse_bool("MODERATE_LINKS", optional_env("MODERATE_LINKS"), true)?;
+        // Link moderation is opt-in. Plenty of real comments contain a link,
+        // so holding them by default surprises both readers and the author.
+        let moderate_links = parse_bool("MODERATE_LINKS", optional_env("MODERATE_LINKS"), false)?;
 
         let mut pending_keywords = Vec::new();
         if let Some(raw) = optional_env("PENDING_KEYWORDS") {

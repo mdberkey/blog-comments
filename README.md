@@ -66,7 +66,7 @@ value stops the process instead of failing a later request.
 | `ADMIN_PASSWORD_HASH` | required           | argon2id PHC string, generated with `hash-password`. |
 | `SECRET_KEY`          | required           | 64 hex characters (32 random bytes). Signs tokens and hashes IPs. |
 | `TRUST_PROXY`         | `true`             | Trust the rightmost `X-Forwarded-For` entry. |
-| `MODERATE_LINKS`      | `true`             | Hold comments containing an `http(s)` URL for review. |
+| `MODERATE_LINKS`      | `false`            | Opt in to holding comments that contain an `http(s)` URL. |
 | `PENDING_KEYWORDS`    | empty              | Comma-separated case-insensitive substrings that force moderation. |
 | `RUST_LOG`            | `info`             | Standard `tracing` filter. |
 
@@ -151,8 +151,9 @@ ADMIN_USER=admin
 ADMIN_PASSWORD_HASH=$argon2id$v=19$m=19456,t=2,p=1$...
 SECRET_KEY=...
 TRUST_PROXY=true
-MODERATE_LINKS=true
-PENDING_KEYWORDS=casino,payday loan
+# Both moderation rules are off unless set.
+# MODERATE_LINKS=true
+# PENDING_KEYWORDS=casino,payday loan
 ```
 
 The argon2 hash contains `$`, and Compose interpolates `$` inside a plain
