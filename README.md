@@ -2,8 +2,7 @@
 
 Comment service for [mdberkey.github.io](https://mdberkey.github.io). Rust,
 SQLite, server-rendered HTML, and a small script on the blog. The blog stays on
-GitHub Pages; this runs on the home server behind Nginx Proxy Manager at
-`comments.mikecraft.ooguy.com`.
+GitHub Pages; this runs on my home server behind Nginx Proxy Manager.
 
 ## Endpoints
 
@@ -105,7 +104,7 @@ The root filesystem is read-only and `/data` is the only writable path.
 `comments.env`:
 
 ```sh
-PUBLIC_URL=https://comments.mikecraft.ooguy.com
+PUBLIC_URL=https://comments.example.com
 SITE_ORIGIN=https://mdberkey.github.io
 SITE_CSS_URL=https://mdberkey.github.io/style.css
 ADMIN_USER=admin
