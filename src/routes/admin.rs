@@ -62,6 +62,9 @@ pub async fn index(State(state): State<AppState>) -> Result<Response, AppError> 
         recent,
         pending_count,
         recent_count,
+        static_css_url: state.cfg.path("/static/admin.css"),
+        admin_url: state.cfg.path("/admin"),
+        thread_url_base: format!("{}/thread", state.cfg.public_url),
     };
     match template.render() {
         Ok(html) => Ok((
@@ -123,5 +126,5 @@ async fn act(
     if !changed {
         return Err(AppError::NotFound);
     }
-    Ok(Redirect::to("/admin").into_response())
+    Ok(Redirect::to(&state.cfg.path("/admin")).into_response())
 }

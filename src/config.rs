@@ -46,6 +46,10 @@ pub struct Config {
     pub database_path: PathBuf,
     /// Absolute base URL of this service, without a trailing slash.
     pub public_url: String,
+    /// Path prefix taken from `public_url`, without a trailing slash. Empty
+    /// when the service owns the host root, `/comments` when it is mounted
+    /// under a subpath.
+    pub base_path: String,
     /// Origin of the blog, without a trailing slash. Used for CORS and links.
     pub site_origin: String,
     /// Stylesheet of the blog, linked from the standalone thread page.
@@ -66,6 +70,7 @@ impl fmt::Debug for Config {
             .field("bind_addr", &self.bind_addr)
             .field("database_path", &self.database_path)
             .field("public_url", &self.public_url)
+            .field("base_path", &self.base_path)
             .field("site_origin", &self.site_origin)
             .field("site_css_url", &self.site_css_url)
             .field("admin_user", &self.admin_user)
@@ -97,6 +102,9 @@ impl Config {
         }
 
         let public_url = validate_url("PUBLIC_URL", required_env("PUBLIC_URL")?, true)?;
+        // The public URL is the single source of truth for the mount point, so
+        // links and routes cannot disagree about the prefix.
+        let base_path = base_path_from_url(&public_url)?;
         let site_origin = validate_url("SITE_ORIGIN", required_env("SITE_ORIGIN")?, false)?;
         let site_css_url = validate_url("SITE_CSS_URL", required_env("SITE_CSS_URL")?, true)?;
 
@@ -146,6 +154,7 @@ impl Config {
             bind_addr,
             database_path,
             public_url,
+            base_path,
             site_origin,
             site_css_url,
             admin_user,
@@ -166,6 +175,49 @@ impl Config {
     pub fn post_url(&self, page: &str) -> String {
         format!("{}{page}", self.site_origin)
     }
+
+    /// Absolute path on this service, including the mount prefix. `path` must
+    /// start with `/`.
+    pub fn path(&self, path: &str) -> String {
+        format!("{}{path}", self.base_path)
+    }
+}
+
+/// Extract the mount path from the public URL. `https://example.com` gives an
+/// empty prefix, `https://example.com/comments` gives `/comments`.
+fn base_path_from_url(public_url: &str) -> Result<String, ConfigError> {
+    let rest = public_url
+        .strip_prefix("https://")
+        .or_else(|| public_url.strip_prefix("http://"))
+        .expect("public_url was validated as absolute");
+    let Some(index) = rest.find('/') else {
+        return Ok(String::new());
+    };
+    let path = &rest[index..];
+    validate_base_path(path)?;
+    Ok(path.to_owned())
+}
+
+fn validate_base_path(path: &str) -> Result<(), ConfigError> {
+    if path.is_empty() {
+        return Ok(());
+    }
+    if !path.starts_with('/') || path.ends_with('/') {
+        return Err(ConfigError::new(
+            "PUBLIC_URL path must not end with a slash",
+        ));
+    }
+    for segment in path.split('/').skip(1) {
+        let safe = segment
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '~'));
+        if segment.is_empty() || segment == "." || segment == ".." || !safe {
+            return Err(ConfigError::new(
+                "PUBLIC_URL path may only contain letters, digits, '.', '_', '~' and '-'",
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn optional_env(name: &str) -> Option<String> {
@@ -275,5 +327,25 @@ mod tests {
         assert!(parse_secret_key(&"ab".repeat(32)).is_ok());
         assert!(parse_secret_key(&"ab".repeat(31)).is_err());
         assert!(parse_secret_key(&"zz".repeat(32)).is_err());
+    }
+
+    #[test]
+    fn derives_base_path_from_public_url() {
+        assert_eq!(base_path_from_url("https://example.com").unwrap(), "");
+        assert_eq!(
+            base_path_from_url("https://example.com/comments").unwrap(),
+            "/comments"
+        );
+        assert_eq!(
+            base_path_from_url("http://127.0.0.1:8080/a/b").unwrap(),
+            "/a/b"
+        );
+    }
+
+    #[test]
+    fn rejects_unsafe_base_paths() {
+        assert!(base_path_from_url("https://example.com/a/../b").is_err());
+        assert!(base_path_from_url("https://example.com/a b").is_err());
+        assert!(base_path_from_url("https://example.com/a%2fb").is_err());
     }
 }

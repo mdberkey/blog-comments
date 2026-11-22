@@ -6,6 +6,10 @@ GitHub Pages; this runs on my home server behind Nginx Proxy Manager.
 
 ## Endpoints
 
+Paths are relative to the service root. When `PUBLIC_URL` has a path, such as
+`https://example.com/comments`, every route except `/healthz` lives under that
+prefix.
+
 | Method | Path | Purpose |
 | ------ | ---- | ------- |
 | `GET`  | `/healthz` | Liveness. Does not touch the database. |
@@ -38,7 +42,7 @@ the process.
 | -------- | ------- | ----- |
 | `BIND_ADDR` | `0.0.0.0:8080` | Listen address. |
 | `DATABASE_PATH` | `/data/comments.db` | SQLite file; the parent directory is created. |
-| `PUBLIC_URL` | required | Public base URL, no trailing slash. |
+| `PUBLIC_URL` | required | Public base URL, no trailing slash. A path prefix here mounts the service there. |
 | `SITE_ORIGIN` | required | Blog origin, no path. Used for CORS, links, and CSP. |
 | `SITE_CSS_URL` | required | Blog stylesheet, linked from `/thread`. |
 | `ADMIN_USER` | `admin` | Basic auth user. |
@@ -104,6 +108,7 @@ The root filesystem is read-only and `/data` is the only writable path.
 `comments.env`:
 
 ```sh
+# Use a path here to share a host: https://example.com/comments
 PUBLIC_URL=https://comments.example.com
 SITE_ORIGIN=https://mdberkey.github.io
 SITE_CSS_URL=https://mdberkey.github.io/style.css
@@ -119,15 +124,25 @@ TRUST_PROXY=true
 The argon2 hash contains `$`, so the example uses the long `env_file` form with
 `format: raw`; otherwise Compose truncates the hash.
 
-In Nginx Proxy Manager, point the host at `comments:8080`, attach a Let's Encrypt
-certificate, and set the body limit to 64k:
+In Nginx Proxy Manager, proxy the service. For a dedicated host, point the host
+at `comments:8080`, attach a Let's Encrypt certificate, and set the body limit
+to 64k. To share a host with other apps, add a custom location for the prefix
+and keep the path intact (no trailing slash after the port):
 
 ```nginx
-proxy_set_header Host $host;
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_set_header X-Forwarded-Proto $scheme;
-client_max_body_size 64k;
+location /comments/ {
+    proxy_pass http://comments:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    client_max_body_size 64k;
+}
 ```
+
+With that setup `PUBLIC_URL=https://example.com/comments`. The service reads the
+prefix from `PUBLIC_URL` and nests its routes under it, so links, redirects, and
+static assets stay under `/comments`. `/healthz` stays at the root for the
+container healthcheck and is not exposed by the location above.
 
 Back up through SQLite (`sqlite3 /data/comments.db '.backup ...'`) or stop the
 container first. The database runs in WAL mode, so copying only `comments.db`
@@ -148,6 +163,8 @@ service supplies `GET /embed?page=…`, fragment responses from `POST /comment`
 when `X-Fragment: 1` is set, CORS for `SITE_ORIGIN` only, and reply links that
 point at `/embed?page=…&reply={id}` so the script can fetch them in place. Every
 control is a real link or form, so the thread still works without JavaScript.
+The script derives the service root from the `data-src` URL (everything before
+`/embed`), so it works with or without a path prefix.
 
 ## Limits
 

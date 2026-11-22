@@ -55,12 +55,18 @@ pub fn admin_password_hash() -> &'static str {
 
 impl TestApp {
     pub fn new() -> Self {
+        Self::new_with_base_path("")
+    }
+
+    /// App mounted under a path prefix, like `PUBLIC_URL=https://host/comments`.
+    pub fn new_with_base_path(base: &str) -> Self {
         let dir = TempDir::new().expect("temp dir");
         let db_path = dir.path().join("comments.db");
         let config = Config {
             bind_addr: SocketAddr::from(([127, 0, 0, 1], 0)),
             database_path: db_path.clone(),
-            public_url: "https://comments.test".to_owned(),
+            public_url: format!("https://comments.test{base}"),
+            base_path: base.to_owned(),
             site_origin: "https://blog.test".to_owned(),
             site_css_url: "https://blog.test/style.css".to_owned(),
             admin_user: "admin".to_owned(),
@@ -296,7 +302,17 @@ impl TestApp {
     /// Extract the signed fields from an admin action form, scoped to its
     /// `<form>` so multiple comments on the page cannot be confused.
     pub fn action_token(&self, html: &str, id: i64, action: &str) -> (String, String) {
-        let needle = format!("action=\"/admin/{id}/{action}\"");
+        self.action_token_at("", html, id, action)
+    }
+
+    pub fn action_token_at(
+        &self,
+        base: &str,
+        html: &str,
+        id: i64,
+        action: &str,
+    ) -> (String, String) {
+        let needle = format!("action=\"{base}/admin/{id}/{action}\"");
         let start = html.find(&needle).expect("action form");
         let end = html[start..]
             .find("</form>")

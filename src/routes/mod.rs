@@ -76,14 +76,28 @@ pub fn build_router(state: AppState) -> Router {
         .route("/admin/{id}/delete", post(admin::delete))
         .route_layer(from_fn_with_state(state.clone(), admin_auth_middleware));
 
-    Router::new()
-        .route("/healthz", get(health::healthz))
+    let service = Router::new()
         .route("/thread", get(embed::thread_page))
         .route("/static/comments.css", get(comments_css))
         .route("/static/admin.css", get(admin_css))
         .merge(public)
         .merge(admin)
-        .fallback(not_found)
+        .fallback(not_found);
+
+    // `PUBLIC_URL` decides whether the service owns the host root or lives
+    // under a prefix such as /comments. `nest` keeps the inner routes unaware
+    // of the prefix; generated links use `Config::path`.
+    let service = if state.cfg.base_path.is_empty() {
+        service
+    } else {
+        Router::new().nest(&state.cfg.base_path, service)
+    };
+
+    Router::new()
+        // The container healthcheck asks for /healthz on localhost, so it stays
+        // at the root even when the public routes are nested.
+        .route("/healthz", get(health::healthz))
+        .merge(service)
         // The body limit applies to every body-consuming route, including the
         // multipart branch of the comment form.
         .layer(DefaultBodyLimit::max(spam::MAX_BODY_BYTES))
@@ -182,6 +196,7 @@ impl IntoResponse for AppError {
         let template = ErrorTemplate {
             title: title.to_owned(),
             message: message.to_owned(),
+            css: include_str!("../../static/comments.css"),
         };
         match template.render() {
             Ok(html) => {
@@ -214,12 +229,14 @@ pub struct FormState {
     pub error_author: String,
     pub error_body: String,
     pub error_general: String,
+    pub action: String,
     pub cancel_url: String,
     pub is_reply: bool,
 }
 
 impl FormState {
-    /// Blank form with a freshly signed token for `page`.
+    /// Blank form with a freshly signed token for `page`. `base` is the
+    /// unprefixed route the form belongs to (`/embed` or `/thread`).
     pub fn new(state: &AppState, page: &str, base: &str) -> Self {
         let FormToken { ts, token } = state.signer.issue_comment_token(page, state.now());
         Self {
@@ -233,7 +250,8 @@ impl FormState {
             error_author: String::new(),
             error_body: String::new(),
             error_general: String::new(),
-            cancel_url: format!("{base}?page={page}"),
+            action: state.cfg.path("/comment"),
+            cancel_url: format!("{}?page={page}", state.cfg.path(base)),
             is_reply: false,
         }
     }
@@ -290,7 +308,7 @@ pub fn render_fragment(
         visible_count: view.visible_count,
         form: view.form.clone(),
         notice: view.notice.clone(),
-        reply_base: base.to_owned(),
+        reply_base: state.cfg.path(base),
         thread_url_base: format!("{}/thread", state.cfg.public_url),
         show_heading,
     };
@@ -350,6 +368,7 @@ pub fn thread_response(state: &AppState, view: &ThreadView, status: StatusCode) 
         page: view.page.clone(),
         comments_html,
         site_css_url: state.cfg.site_css_url.clone(),
+        static_css_url: state.cfg.path("/static/comments.css"),
         post_url: state.cfg.post_url(&view.page),
         canonical_url: state.cfg.thread_url(&view.page),
     };
@@ -394,6 +413,7 @@ struct ThreadPageTemplate {
     page: String,
     comments_html: Html,
     site_css_url: String,
+    static_css_url: String,
     post_url: String,
     canonical_url: String,
 }
@@ -403,6 +423,8 @@ struct ThreadPageTemplate {
 struct ErrorTemplate {
     title: String,
     message: String,
+    /// Inlined so the error page needs no route prefix or extra request.
+    css: &'static str,
 }
 
 #[derive(Template)]
@@ -413,4 +435,7 @@ struct AdminTemplate {
     recent: Vec<AdminComment>,
     pending_count: usize,
     recent_count: usize,
+    static_css_url: String,
+    admin_url: String,
+    thread_url_base: String,
 }
