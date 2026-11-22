@@ -36,8 +36,9 @@ impl fmt::Display for Html {
 
 impl askama::filters::HtmlSafe for Html {}
 
-const HUMAN_FORMAT: &[time::format_description::FormatItem<'static>] =
-    format_description!("[year]-[month]-[day] [hour]:[minute] UTC");
+const HUMAN_FORMAT: &[time::format_description::FormatItem<'static>] = format_description!(
+    "[month]-[day]-[year] [hour repr:12 padding:none]:[minute] [period case:lower] UTC"
+);
 
 /// Render a comment body as escaped text with preserved line breaks and
 /// http(s) links. Everything else, including quotes, is escaped.
