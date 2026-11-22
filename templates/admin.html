@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>comment moderation</title>
-  <link rel="stylesheet" href="/static/admin.css">
+  <link rel="stylesheet" href="{{ static_css_url }}">
 </head>
 <body class="admin-page">
   <main class="admin-main">
     <header class="admin-header">
       <h1>comment moderation</h1>
-      <p class="admin-meta">signed in as <strong>{{ admin_user }}</strong> · <a href="/admin">refresh</a></p>
+      <p class="admin-meta">signed in as <strong>{{ admin_user }}</strong> · <a href="{{ admin_url }}">refresh</a></p>
     </header>
 
     <section class="admin-section">
@@ -24,17 +24,17 @@
         <div class="admin-comment-meta">
           <strong>{{ c.author }}</strong>
           <span>{{ c.created_human }}</span>
-          <a href="/thread?page={{ c.page|urlencode }}#c{{ c.id }}">thread</a>
+          <a href="{{ thread_url_base }}?page={{ c.page|urlencode }}#c{{ c.id }}">thread</a>
         </div>
         <p class="admin-subject">{{ c.page }}</p>
         <pre class="admin-body">{{ c.body }}</pre>
         <div class="admin-actions">
-          <form method="post" action="/admin/{{ c.id }}/approve">
+          <form method="post" action="{{ admin_url }}/{{ c.id }}/approve">
             <input type="hidden" name="ts" value="{{ c.ts }}">
             <input type="hidden" name="token" value="{{ c.approve_token }}">
             <button type="submit" class="admin-button admin-approve">approve</button>
           </form>
-          <form method="post" action="/admin/{{ c.id }}/delete">
+          <form method="post" action="{{ admin_url }}/{{ c.id }}/delete">
             <input type="hidden" name="ts" value="{{ c.ts }}">
             <input type="hidden" name="token" value="{{ c.delete_token }}">
             <button type="submit" class="admin-button admin-delete">delete</button>
@@ -55,12 +55,12 @@
         <div class="admin-comment-meta">
           <strong>{{ c.author }}</strong>
           <span>{{ c.created_human }}</span>
-          <a href="/thread?page={{ c.page|urlencode }}#c{{ c.id }}">thread</a>
+          <a href="{{ thread_url_base }}?page={{ c.page|urlencode }}#c{{ c.id }}">thread</a>
         </div>
         <p class="admin-subject">{{ c.page }}</p>
         <pre class="admin-body">{{ c.body }}</pre>
         <div class="admin-actions">
-          <form method="post" action="/admin/{{ c.id }}/delete">
+          <form method="post" action="{{ admin_url }}/{{ c.id }}/delete">
             <input type="hidden" name="ts" value="{{ c.ts }}">
             <input type="hidden" name="token" value="{{ c.delete_token }}">
             <button type="submit" class="admin-button admin-delete">delete</button>

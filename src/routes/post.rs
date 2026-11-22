@@ -291,12 +291,14 @@ pub async fn create_comment(
         ))
     } else {
         let location = if status == CommentStatus::Pending {
-            format!("/thread?page={page}&pending=1#comments")
+            state
+                .cfg
+                .path(&format!("/thread?page={page}&pending=1#comments"))
         } else {
-            format!("/thread?page={page}#c{id}")
+            state.cfg.path(&format!("/thread?page={page}#c{id}"))
         };
-        let location =
-            HeaderValue::try_from(location).unwrap_or_else(|_| HeaderValue::from_static("/thread"));
+        let location = HeaderValue::try_from(location)
+            .unwrap_or_else(|_| HeaderValue::try_from(state.cfg.path("/thread")).expect("path"));
         Ok((StatusCode::SEE_OTHER, [(LOCATION, location)]).into_response())
     }
 }
