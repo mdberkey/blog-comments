@@ -83,11 +83,6 @@
   color: var(--comments-muted);
 }
 
-.comments-empty {
-  color: var(--comments-muted);
-  font-size: 0.95rem;
-}
-
 .comments-notice {
   margin: 0 0 1rem;
   padding: 0.5rem 0.75rem;
