@@ -44,9 +44,7 @@
   {% if !form.error_general.is_empty() %}
   <p class="comment-error comments-error-general" role="alert">{{ form.error_general }}</p>
   {% endif %}
-  {% if comments.is_empty() %}
-  <p class="comments-empty">no comments yet. be the first.</p>
-  {% else %}
+  {% if !comments.is_empty() %}
   <ol class="comment-list">
     {% for c in comments %}
     <li id="c{{ c.id }}" class="comment depth-{{ c.depth_class }}{% if c.deleted %} comment-deleted{% endif %}">

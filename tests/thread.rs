@@ -179,7 +179,8 @@ async fn pending_comments_never_render() {
     let response = app.get("/thread?page=/blog/post/").await;
     assert_eq!(response.status, StatusCode::OK);
     assert!(!response.body.contains("buy things"));
-    assert!(response.body.contains("no comments yet"));
+    assert!(!response.body.contains("no comments yet"));
+    assert!(response.body.contains("comment-form"));
 }
 
 #[tokio::test]
